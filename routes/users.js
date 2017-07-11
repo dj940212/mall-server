@@ -85,8 +85,36 @@ router.get("/cartList",function(req,res,next){
 router.post("/cart/del",function(req,res,next){
     var userId = "100077";//req.cookies.userId;
     var productId = req.body.productId;
-    User.update({userId:userId},{$pull:{'cartList':{'productId':productId}}},function(err,doc){
+    User.update({'userId':userId},{$pull:{'cartList':{'productId':productId}}},function(err,doc){
         if (err) {
+            res.json({
+                status:'1',
+                msg:err.message,
+                result:''
+            });
+        }else{
+            res.json({
+                status:'0',
+                msg:'',
+                result:'suc'
+            })
+        }
+    })
+})
+
+//购物车商品数量编辑
+router.post("/cartEdit",function(req,res,next){
+    var userId = "100077";//req.cookies.userId;
+    var productId = req.body.productId;
+    var productNum = req.body.productNum;
+    var checked = req.body.checked;
+
+    User.update({"userId":userId,"cartList.productId":productId},{
+        "cartList.$.productNum":productNum,
+        "cartList.$.checked":checked
+    },function(err,doc){
+        if (err) {
+            console.log("出现错误")
             res.json({
                 status:'1',
                 msg:err.message,
