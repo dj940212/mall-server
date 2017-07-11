@@ -16,6 +16,7 @@ mongoose.connection.on("disconnected",function(){
     console.log("MongoDB disconnected")
 });
 
+//查询商品列表数据
 router.get("/",function(req,res,next){
     let page = parseInt(req.param("page"));
     let pageSize = parseInt(req.param("pageSize"));
@@ -59,7 +60,80 @@ router.get("/",function(req,res,next){
             })
         }
       });
-    
-})
+});
+
+//加入到购物车
+router.post("/addCart",function(req,res,next){
+   var userId = '100077',productId = req.body.productId;
+   var User = require('../models/user');
+   User.findOne({userId:userId},function(err,userDoc){
+    if (err) {
+      res.json({
+        status:"1",
+        msg:err.message
+      })
+    }else{
+      if (userDoc) {
+        console.log("获取用户信息成功")
+        var goodsItem = '';
+        userDoc.cartList.forEach(function(item) {
+          if (item.productId === productId) {
+            goodsItem = item;
+            item.productNum ++;
+            console.log("购物车已有该商品,增加商品数")
+          }
+        });
+        if (goodsItem) {
+          userDoc.save(function(err2,doc){
+            if (err2) {
+              res.json({
+                status:"1",
+                msg:err2.message
+              })
+            }else{
+              res.json({
+                status:'0',
+                msg:'',
+                result:'suc'
+              })
+            }
+          })
+        }else{
+          console.log("购物车没有该商品。。。")
+          Goods.findOne({productId:productId},function(err1,productIdDoc){
+           if (err1) {
+             res.json({
+               status:"1",
+               msg:err1.message
+             })
+           }else{
+              if (productIdDoc) {
+                console.log("添加新商品成功")
+                productIdDoc.productNum = 1;
+                productIdDoc.checked = 1;
+                userDoc.cartList.push(productIdDoc);
+                userDoc.save(function(err2,doc){
+                  if (err2) {
+                    res.json({
+                        status:"1",
+                        msg:err2.message
+                    })
+                  }else{
+                     res.json({
+                        status:'0',
+                        msg:'',
+                        result:'suc'
+                     })
+                  }
+                })
+              }
+           }
+          })
+        }
+        
+      }
+    }
+   })
+});
 
 module.exports = router;
